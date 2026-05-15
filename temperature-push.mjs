@@ -1,4 +1,6 @@
+import "dotenv/config";
 import * as cheerio from "cheerio";
+import axios from "axios";
 
 const PUSHOVER_API_URL = "https://api.pushover.net/1/messages.json";
 
@@ -6,11 +8,8 @@ const STATION_URL =
   "https://wasserportal.berlin.de/station.php?anzeige=g&thema=owt&station=139";
 
 async function fetchTemperature() {
-  const response = await fetch(STATION_URL);
-  if (!response.ok) {
-    throw new Error(`HTTP error fetching station page: ${response.status}`);
-  }
-  const html = await response.text();
+  const response = await axios.get(STATION_URL);
+  const html = response.data;
   const $ = cheerio.load(html);
 
   // Find the temperature table and get the most recent non-empty value
@@ -74,22 +73,14 @@ async function sendPushover(message) {
     );
   }
 
-  const body = new URLSearchParams({
-    token,
-    user,
-    title: "🌊 Spree Wassertemperatur",
-    message,
-    sound: "none",
-  });
+  const response = await axios.post(
+    PUSHOVER_API_URL,
+    new URLSearchParams({ token, user, title: "🌊 Spree Wassertemperatur", message, sound: "none" }).toString(),
+    { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+  );
 
-  const response = await fetch(PUSHOVER_API_URL, {
-    method: "POST",
-    body,
-  });
-
-  const json = await response.json();
-  if (json.status !== 1) {
-    throw new Error(`Pushover error: ${JSON.stringify(json)}`);
+  if (response.data.status !== 1) {
+    throw new Error(`Pushover error: ${JSON.stringify(response.data)}`);
   }
 }
 
