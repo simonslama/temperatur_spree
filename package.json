@@ -1,0 +1,13 @@
+{
+  "name": "wassertemperatur-push",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Daily Spree water temperature push notification via Pushover",
+  "main": "temperature-push.mjs",
+  "scripts": {
+    "start": "node temperature-push.mjs"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0"
+  }
+}
